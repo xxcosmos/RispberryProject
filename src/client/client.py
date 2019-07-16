@@ -54,7 +54,7 @@ class CamThreading(threading.Thread):
 
     def run(self):
         with picamera.PiCamera() as camera:
-            camera.resolution = (320, 240)
+            camera.resolution = (320*2, 240*2)
             camera.framerate = 15
             time.sleep(2)
             stream = io.BytesIO()
@@ -67,7 +67,7 @@ class CamThreading(threading.Thread):
                 stream.seek(0)
                 stream.truncate()
         self.connection.write(struct.pack('<L', 0))
-
+        camera.close()
 
 class CarThreading(threading.Thread):
     def __init__(self):

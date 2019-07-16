@@ -10,7 +10,7 @@ from server.mwin import Ui_MainWindow
 
 def send_msg(msg):
     s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-    s.connect(('192.168.12.1',8080))
+    s.connect(('192.168.1.182',8080))
     s.sendall(msg.encode('utf-8'))
     s.close()
 class MyWindow(QMainWindow, Ui_MainWindow):
