@@ -24,13 +24,6 @@
         </property>
        </widget>
       </item>
-      <item row="2" column="1">
-       <widget class="QPushButton" name="start_button">
-        <property name="text">
-         <string>播放 / 暂停</string>
-        </property>
-       </widget>
-      </item>
       <item row="3" column="1">
        <widget class="QPushButton" name="backward_button">
         <property name="text">
@@ -52,17 +45,45 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="0" colspan="2">
+      <item row="0" column="0" colspan="3">
        <widget class="QLabel" name="video_frame">
         <property name="text">
          <string>Hello</string>
         </property>
        </widget>
       </item>
-      <item row="3" column="2">
+      <item row="2" column="1">
        <widget class="QPushButton" name="stop_button">
         <property name="text">
-         <string>停止</string>
+         <string>小车停止</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QPushButton" name="sub_speed_button">
+        <property name="text">
+         <string>减速</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QPushButton" name="add_speed_button">
+        <property name="text">
+         <string>加速</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2">
+       <widget class="QPushButton" name="start_button">
+        <property name="text">
+         <string>视频播放 / 暂停</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="2">
+       <widget class="QPushButton" name="exit_button">
+        <property name="text">
+         <string>退出</string>
         </property>
        </widget>
       </item>

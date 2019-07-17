@@ -24,6 +24,3 @@ class MyThread(threading.Thread):
 def mat_qimage_converter(mat):
     image = cv2.cvtColor(mat, cv2.COLOR_BGR2RGB)
     return QImage(image.data, image.shape[1], image.shape[0], QImage.Format_RGB888)
-    # height,width,channel = mat.shape
-    # bytesPerLine = 3*width
-    # return QImage(mat.data,width,height,bytesPerLine,QImage.Format_RGB888).rgbSwapped()
