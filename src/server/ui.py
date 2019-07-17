@@ -37,20 +37,23 @@ class MyWindow(QMainWindow, Ui_MainWindow):
         self.add_speed_button.clicked.connect(self.on_clicked_direction_button)
         self.sub_speed_button.clicked.connect(self.on_clicked_direction_button)
         self.exit_button.clicked.connect(QCoreApplication.quit)
+        self.grabKeyboard()
 
     def keyPressEvent(self, QKeyEvent):
-        if QKeyEvent.key() == Qt.Key_Up or QKeyEvent.key()==Qt.Key_W:
+        if QKeyEvent.key() == Qt.Key_Up :
             send_msg("forward")
-        elif QKeyEvent.key()==Qt.Key_Down or QKeyEvent.key()==Qt.Key_S:
+        elif QKeyEvent.key()==Qt.Key_Down :
             send_msg("backward")
-        elif QKeyEvent.key()==Qt.Key_Left or QKeyEvent.key()==Qt.Key_A:
+        elif QKeyEvent.key()==Qt.Key_Left :
             send_msg("left")
-        elif QKeyEvent.key()==Qt.Key_Right or QKeyEvent.key()==Qt.Key_D:
+        elif QKeyEvent.key()==Qt.Key_Right:
             send_msg("right")
-        elif QKeyEvent.key()==Qt.Key_PageUp:
+        elif QKeyEvent.key()==Qt.Key_W:
             send_msg("add")
-        elif QKeyEvent.key()==Qt.Key_PageDown:
+        elif QKeyEvent.key()==Qt.Key_S:
             send_msg("sub")
+        elif QKeyEvent.key()==Qt.Key_Space:
+            send_msg("stop")
         else:
             pass
     def closeEvent(self, event):

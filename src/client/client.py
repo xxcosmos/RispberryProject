@@ -36,7 +36,7 @@ def instruction_handler(instruction, car):
     elif instruction == left:
         car.left()
     elif instruction == add:
-        pass
+        car.add_speed()
     elif instruction == sub:
         car.sub_speed()
     else:
@@ -98,12 +98,11 @@ class Car(object):
         global speed
         if speed + 10 <= 100:
             speed += 10
-            instruction_handler(instruction,self)
+
     def sub_speed(self):
         global speed
         if speed - 10 >= 0:
             speed -= 10
-            instruction_handler(instruction,self)
 
 
 """
@@ -153,7 +152,7 @@ class CarThreading(threading.Thread):
             rec_msg = connection.recv(1024).decode('utf-8')
 
             print(rec_msg)
-            instruction_handler(rec_msg,car)
+            instruction_handler(rec_msg, car)
             global instruction
             instruction = rec_msg
             connection.close()
