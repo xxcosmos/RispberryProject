@@ -17,73 +17,87 @@
    <layout class="QGridLayout" name="gridLayout_2">
     <item row="0" column="0">
      <layout class="QGridLayout" name="gridLayout">
-      <item row="1" column="1">
+      <item row="0" column="1">
+       <widget class="QPushButton" name="photo_button">
+        <property name="text">
+         <string>拍照</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1">
        <widget class="QPushButton" name="forward_button">
         <property name="text">
          <string>前进</string>
         </property>
        </widget>
       </item>
-      <item row="3" column="1">
+      <item row="6" column="1">
        <widget class="QPushButton" name="backward_button">
         <property name="text">
          <string>后退</string>
         </property>
        </widget>
       </item>
-      <item row="2" column="0">
+      <item row="5" column="0">
        <widget class="QPushButton" name="left_button">
         <property name="text">
          <string>左转</string>
         </property>
        </widget>
       </item>
-      <item row="2" column="2">
-       <widget class="QPushButton" name="right_button">
-        <property name="text">
-         <string>右转</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="0" colspan="3">
-       <widget class="QLabel" name="video_frame">
-        <property name="text">
-         <string>Hello</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="1">
-       <widget class="QPushButton" name="stop_button">
-        <property name="text">
-         <string>小车停止</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="0">
+      <item row="6" column="0">
        <widget class="QPushButton" name="sub_speed_button">
         <property name="text">
          <string>减速</string>
         </property>
        </widget>
       </item>
-      <item row="1" column="0">
+      <item row="5" column="1">
+       <widget class="QPushButton" name="stop_button">
+        <property name="text">
+         <string>小车停止</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0">
        <widget class="QPushButton" name="add_speed_button">
         <property name="text">
          <string>加速</string>
         </property>
        </widget>
       </item>
-      <item row="1" column="2">
-       <widget class="QPushButton" name="start_button">
+      <item row="5" column="2">
+       <widget class="QPushButton" name="right_button">
         <property name="text">
-         <string>视频播放 / 暂停</string>
+         <string>右转</string>
         </property>
        </widget>
       </item>
-      <item row="3" column="2">
-       <widget class="QPushButton" name="exit_button">
+      <item row="2" column="0" colspan="3">
+       <widget class="QLabel" name="video_frame">
         <property name="text">
-         <string>退出</string>
+         <string>                                                                        Wait for video signal...</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="QPushButton" name="start_button">
+        <property name="text">
+         <string>实时视频播放 / 暂停</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QPushButton" name="video_button">
+        <property name="text">
+         <string>录像</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QPushButton" name="sync_button">
+        <property name="text">
+         <string>同步视频</string>
         </property>
        </widget>
       </item>

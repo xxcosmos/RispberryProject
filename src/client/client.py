@@ -21,12 +21,15 @@ STOP = "stop"
 SUB_SPEED = 'sub'
 ADD_SPEED = 'add'
 PAUSE = 'start'
-
+PHOTO = 'photo'
+VIDEO = 'video'
 # 初始变量
 speed = 10
 direction = FORWARD
 movement = STOP
 is_video_transmit = False
+photo_num = 0
+video_num = 0
 
 
 # 指令处理函数
@@ -57,6 +60,10 @@ def instruction_handler(ins):
         if not is_video_transmit:
             CamThreading('192.168.1.241', 8080).start()
         is_video_transmit = not is_video_transmit
+    elif ins == PHOTO:
+        TakePhotoThreading()
+    elif ins == VIDEO:
+        TakeVideoThreading()
     else:
         Car.stop()
 
@@ -129,6 +136,35 @@ class Car(object):
             speed -= 10
             instruction_handler(movement)
         print("speed now is ", speed)
+
+
+class TakePhotoThreading(threading.Thread):
+    def __init__(self):
+        threading.Thread.__init__(self)
+
+    def run(self):
+        with picamera.PiCamera() as camera:
+            global photo_num
+
+            time.sleep(2)
+            camera.capture('/home/pi/images/photo' + str(photo_num) + '.jpg')
+            photo_num += 1
+
+
+class TakeVideoThreading(threading.Thread):
+    def __init__(self):
+        threading.Thread.__init__(self)
+
+    def run(self):
+        with picamera.PiCamera() as camera:
+            global video_num
+
+            camera.resolution = (320 * 2, 240 * 2)
+            camera.framerate = 15
+            camera.start_recording('/home/pi/video' + str(video_num) + '.h264')
+            time.sleep(10)
+            camera.stop_recording()
+            video_num += 1
 
 
 # 视频传输线程

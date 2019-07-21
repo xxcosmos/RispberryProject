@@ -26,6 +26,8 @@ class MyWindow(QMainWindow, Ui_MainWindow):
 
         self.start_button.clicked.connect(self.on_clicked_start_button)
 
+        self.photo_button.clicked.connect(self.on_clicked_direction_button)
+        self.video_button.clicked.connect(self.on_clicked_direction_button)
         self.is_played = False
         self.stream_bytes = b' '
 
@@ -36,7 +38,6 @@ class MyWindow(QMainWindow, Ui_MainWindow):
         self.stop_button.clicked.connect(self.on_clicked_direction_button)
         self.add_speed_button.clicked.connect(self.on_clicked_direction_button)
         self.sub_speed_button.clicked.connect(self.on_clicked_direction_button)
-        self.exit_button.clicked.connect(QCoreApplication.quit)
         self.grabKeyboard()
 
     def keyPressEvent(self, event):
