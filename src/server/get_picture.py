@@ -1,24 +1,84 @@
+import socket
+from time import sleep
+
 import numpy as np
 import cv2
 from PyQt5.QtGui import QImage, QPixmap
 import threading
+
+from server import ui
+
+green_center = (0, 0)
+red_center = (0, 0)
+green_radius = 0
+red_radius = 0
 
 
 class MyThread(threading.Thread):
     def __init__(self, window):
         threading.Thread.__init__(self)
         self.window = window
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.socket.bind((window.video_host, window.video_port))
+        self.socket.listen(0)
+        self.connection, self.client_address = self.socket.accept()
+        self.connection = self.connection.makefile('rb')
+        print("connection from ", self.client_address)
 
     def run(self):
+        cnt = 20
+        cnt1 = 0
         while True:
-            self.window.stream_bytes += self.window.connection.read(1024)
+            self.window.stream_bytes += self.connection.read(1024)
             first = self.window.stream_bytes.find(b'\xff\xd8')
             last = self.window.stream_bytes.find(b'\xff\xd9')
             if first != -1 and last != -1:
                 jpg = self.window.stream_bytes[first:last + 2]
                 self.window.stream_bytes = self.window.stream_bytes[last + 2:]
                 image = cv2.imdecode(np.frombuffer(jpg, dtype=np.uint8), cv2.IMREAD_COLOR)
+                if cnt % 20 == 0:
+                    global green_center, red_center, green_radius, red_radius
+                    cnt1 = 0
+
+                    hue_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+
+                    low_red = np.array([0, 43, 46])
+                    high_red = np.array([10, 255, 255])
+                    red_th = cv2.inRange(hue_image, low_red, high_red)
+                    red_dilated = cv2.dilate(red_th, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3)), iterations=2)
+                    red_circles = cv2.HoughCircles(red_dilated, cv2.HOUGH_GRADIENT, 1, 100, param1=15, param2=7,
+                                                   minRadius=10, maxRadius=100)
+
+                    low_green = np.array([35, 43, 46])
+                    high_green = np.array([77, 255, 255])
+                    green_th = cv2.inRange(hue_image, low_green, high_green)
+                    green_dilated = cv2.dilate(green_th, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3)),
+                                               iterations=2)
+                    green_circles = cv2.HoughCircles(green_dilated, cv2.HOUGH_GRADIENT, 1, 100, param1=15, param2=7,
+                                                     minRadius=10, maxRadius=100)
+
+                    if green_circles is not None:
+                        x, y, green_radius = green_circles[0][0]
+                        green_center = (x, y)
+                        cv2.circle(image, green_center, green_radius, (0, 255, 0), 2)
+
+                    if red_circles is not None:
+                        x, y, red_radius = red_circles[0][0]
+                        red_center = (x, y)
+                        cv2.circle(image, red_center, red_radius, (0, 0, 255), 2)
+                else:
+                    if cnt1 < 10:
+                        cv2.circle(image, green_center, green_radius, (0, 255, 0), 2)
+                        cv2.circle(image, red_center, red_radius, (0, 0, 255), 2)
+
                 self.window.video_frame.setPixmap(QPixmap.fromImage(mat_qimage_converter(image)))
+                cnt = cnt + 1
+                cnt1 += 1
+                if not self.window.is_played:
+                    print("not playing")
+                    self.connection.close()
+                    self.socket.close()
+                    break
 
 
 def mat_qimage_converter(mat):

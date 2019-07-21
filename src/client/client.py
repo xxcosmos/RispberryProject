@@ -8,112 +8,138 @@ import wiringpi
 
 # GPIO 管脚
 right_front = 1
-left_front = 29
+left_front = 6
 right_back = 5
 left_back = 4
 
-forward = "forward"
-backward = "backward"
-left = "left"
-right = "right"
-stop = "stop"
-sub = 'sub'
-add = 'add'
+# 指令
+FORWARD = "forward"
+BACKWARD = "backward"
+LEFT = "left"
+RIGHT = "right"
+STOP = "stop"
+SUB_SPEED = 'sub'
+ADD_SPEED = 'add'
+PAUSE = 'start'
 
+# 初始变量
 speed = 10
-instruction = forward
+direction = FORWARD
+movement = STOP
+is_video_transmit = False
 
 
-def instruction_handler(instruction, car):
-    if instruction == forward:
-        car.forward()
-    elif instruction == stop:
-        car.stop()
-    elif instruction == backward:
-        car.backward()
-    elif instruction == right:
-        car.right()
-    elif instruction == left:
-        car.left()
-    elif instruction == add:
-        car.add_speed()
-    elif instruction == sub:
-        car.sub_speed()
+# 指令处理函数
+def instruction_handler(ins):
+    global direction, movement, is_video_transmit
+    if ins == FORWARD:
+        movement = FORWARD
+        direction = FORWARD
+        Car.forward()
+    elif ins == STOP:
+        movement = STOP
+        Car.stop()
+    elif ins == BACKWARD:
+        movement = BACKWARD
+        direction = BACKWARD
+        Car.backward()
+    elif ins == RIGHT:
+        movement = RIGHT
+        Car.right()
+    elif ins == LEFT:
+        movement = LEFT
+        Car.left()
+    elif ins == ADD_SPEED:
+        Car.add_speed()
+    elif ins == SUB_SPEED:
+        Car.sub_speed()
+    elif ins == PAUSE:
+        if not is_video_transmit:
+            CamThreading('192.168.1.241', 8080).start()
+        is_video_transmit = not is_video_transmit
     else:
-        car.stop()
+        Car.stop()
 
 
-"""
-    小车类
-"""
+# 初始化
+def init():
+    wiringpi.wiringPiSetup()
+    wiringpi.pinMode(left_back, 1)
+    wiringpi.pinMode(left_front, 1)
+    wiringpi.pinMode(right_back, 1)
+    wiringpi.pinMode(right_front, 1)
+    wiringpi.pwmSetClock(2)
+    wiringpi.softPwmCreate(left_front, 0, 200)
+    wiringpi.softPwmCreate(right_front, 0, 200)
+    wiringpi.softPwmCreate(left_back, 0, 200)
+    wiringpi.softPwmCreate(right_back, 0, 200)
+    Car.stop()
 
 
+# 小车类
 class Car(object):
-    def __init__(self):
-        wiringpi.wiringPiSetup()
-        wiringpi.pinMode(left_back, 1)
-        wiringpi.pinMode(left_front, 1)
-        wiringpi.pinMode(right_back, 1)
-        wiringpi.pinMode(right_front, 1)
-        wiringpi.pwmSetClock(2)
-        wiringpi.softPwmCreate(left_front, 0, 200)
-        wiringpi.softPwmCreate(right_front, 0, 200)
-        wiringpi.softPwmCreate(left_back, 0, 200)
-        wiringpi.softPwmCreate(right_back, 0, 200)
-        self.stop()
 
-    def stop(self):
+    @staticmethod
+    def stop():
         wiringpi.softPwmWrite(left_back, 0)
         wiringpi.softPwmWrite(right_back, 0)
         wiringpi.softPwmWrite(left_front, 0)
         wiringpi.softPwmWrite(right_front, 0)
 
-    def forward(self):
-        self.stop()
+    @staticmethod
+    def forward():
+        Car.stop()
         wiringpi.softPwmWrite(right_front, speed)
         wiringpi.softPwmWrite(left_front, speed)
 
-    def backward(self):
-        self.stop()
+    @staticmethod
+    def backward():
+        Car.stop()
         wiringpi.softPwmWrite(left_back, speed)
         wiringpi.softPwmWrite(right_back, speed)
 
-    def right(self):
-        if instruction == forward:
-            self.stop()
+    @staticmethod
+    def right():
+        Car.stop()
+        if direction == FORWARD:
             wiringpi.softPwmWrite(left_front, speed)
-        elif instruction == backward:
-            self.stop()
+        elif direction == BACKWARD:
             wiringpi.softPwmWrite(left_back, speed)
 
-    def left(self):
-        if instruction == forward:
-            self.stop()
+    @staticmethod
+    def left():
+        Car.stop()
+        if direction == FORWARD:
             wiringpi.softPwmWrite(right_front, speed)
-        elif instruction == backward:
-            self.stop()
+        elif direction == BACKWARD:
             wiringpi.softPwmWrite(right_back, speed)
 
-    def add_speed(self):
-        global speed
+    @staticmethod
+    def add_speed():
+        global speed, movement
         if speed + 10 <= 100:
             speed += 10
+            instruction_handler(movement)
 
-    def sub_speed(self):
+    @staticmethod
+    def sub_speed():
         global speed
         if speed - 10 >= 0:
             speed -= 10
+            instruction_handler(movement)
 
 
-"""
-    视频传输线程
-"""
-
-
+# 视频传输线程
 class CamThreading(threading.Thread):
-    def __init__(self, connection):
+    # 初始化
+    def __init__(self, host, port):
         threading.Thread.__init__(self)
-        self.connection = connection
+        # 服务端建立视频传输 socket
+        time.sleep(1)
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.socket.connect((host, port))
+        print("连接成功")
+        self.connection = self.socket.makefile('wb')
 
     def run(self):
         with picamera.PiCamera() as camera:
@@ -122,49 +148,40 @@ class CamThreading(threading.Thread):
             time.sleep(2)
             stream = io.BytesIO()
 
-            for foo in camera.capture_continuous(stream, 'jpeg', use_video_port=True):
+            for _ in camera.capture_continuous(stream, 'jpeg', use_video_port=True):
                 self.connection.write(struct.pack('<L', stream.tell()))
                 self.connection.flush()
                 stream.seek(0)
                 self.connection.write(stream.read())
                 stream.seek(0)
                 stream.truncate()
+                if not is_video_transmit:
+                    break
         self.connection.write(struct.pack('<L', 0))
+        # 关闭资源
         camera.close()
+        self.connection.close()
+        self.socket.close()
 
 
-"""
-    小车运动线程
-"""
-
-
+# 接收指令线程
 class CarThreading(threading.Thread):
-    def __init__(self):
+    def __init__(self, host, port):
         threading.Thread.__init__(self)
+        # 建立 socket 连接
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.socket.bind((host, port))
+        self.socket.listen(5)
 
     def run(self):
-        car = Car()
-        server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        server_socket.bind(('192.168.12.1', 8080))
-        server_socket.listen(5)
         while True:
-            connection, address = server_socket.accept()
-            rec_msg = connection.recv(1024).decode('utf-8')
-
-            print(rec_msg)
-            instruction_handler(rec_msg, car)
-            global instruction
-            instruction = rec_msg
+            connection, address = self.socket.accept()
+            ins = connection.recv(1024).decode('utf-8')
+            print('Instruction:', ins)
+            instruction_handler(ins)
             connection.close()
 
 
 if __name__ == '__main__':
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client_socket.connect(('192.168.12.128', 8888))
-    connection = client_socket.makefile('wb')
-
-    cam_threading = CamThreading(connection)
-    cam_threading.start()
-
-    car_threading = CarThreading()
-    car_threading.start()
+    init()
+    CarThreading('192.168.1.218', 8081).start()
