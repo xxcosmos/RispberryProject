@@ -1,17 +1,19 @@
 import socket
-from time import sleep
-
-import numpy as np
-import cv2
-from PyQt5.QtGui import QImage, QPixmap
 import threading
 
-from server import ui
+import cv2
+import numpy as np
+from PyQt5.QtGui import QImage, QPixmap
+
+from server import ui, config
 
 green_center = (0, 0)
 red_center = (0, 0)
 green_radius = 0
 red_radius = 0
+
+is_red = False
+is_green = False
 
 
 class MyThread(threading.Thread):
@@ -37,19 +39,19 @@ class MyThread(threading.Thread):
                 self.window.stream_bytes = self.window.stream_bytes[last + 2:]
                 image = cv2.imdecode(np.frombuffer(jpg, dtype=np.uint8), cv2.IMREAD_COLOR)
                 if cnt % 20 == 0:
-                    global green_center, red_center, green_radius, red_radius
+                    global green_center, red_center, green_radius, red_radius, is_red, is_green
                     cnt1 = 0
 
                     hue_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
-                    low_red = np.array([0, 43, 46])
-                    high_red = np.array([10, 255, 255])
+                    low_red = np.array([5, 90, 150])
+                    high_red = np.array([8, 255, 255])
                     red_th = cv2.inRange(hue_image, low_red, high_red)
                     red_dilated = cv2.dilate(red_th, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3)), iterations=2)
                     red_circles = cv2.HoughCircles(red_dilated, cv2.HOUGH_GRADIENT, 1, 100, param1=15, param2=7,
                                                    minRadius=10, maxRadius=100)
 
-                    low_green = np.array([35, 43, 46])
+                    low_green = np.array([35, 150, 150])
                     high_green = np.array([77, 255, 255])
                     green_th = cv2.inRange(hue_image, low_green, high_green)
                     green_dilated = cv2.dilate(green_th, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3)),
@@ -58,18 +60,28 @@ class MyThread(threading.Thread):
                                                      minRadius=10, maxRadius=100)
 
                     if green_circles is not None:
+                        is_green = True
                         x, y, green_radius = green_circles[0][0]
                         green_center = (x, y)
                         cv2.circle(image, green_center, green_radius, (0, 255, 0), 2)
+                        ui.send_msg("forward", config.car_host, config.car_port)
+                    else:
+                        is_green = False
 
                     if red_circles is not None:
+                        is_red = True
                         x, y, red_radius = red_circles[0][0]
                         red_center = (x, y)
                         cv2.circle(image, red_center, red_radius, (0, 0, 255), 2)
+                        ui.send_msg("stop", config.car_host, config.car_port)
+                    else:
+                        is_red = False
                 else:
                     if cnt1 < 10:
-                        cv2.circle(image, green_center, green_radius, (0, 255, 0), 2)
-                        cv2.circle(image, red_center, red_radius, (0, 0, 255), 2)
+                        if is_green:
+                            cv2.circle(image, green_center, green_radius, (0, 0, 255), 2)
+                        if is_red:
+                            cv2.circle(image, red_center, red_radius, (0, 255, 0), 2)
 
                 self.window.video_frame.setPixmap(QPixmap.fromImage(mat_qimage_converter(image)))
                 cnt = cnt + 1

@@ -120,6 +120,7 @@ class Car(object):
         if speed + 10 <= 100:
             speed += 10
             instruction_handler(movement)
+        print("speed now is ", speed)
 
     @staticmethod
     def sub_speed():
@@ -127,6 +128,7 @@ class Car(object):
         if speed - 10 >= 0:
             speed -= 10
             instruction_handler(movement)
+        print("speed now is ", speed)
 
 
 # 视频传输线程
@@ -184,4 +186,4 @@ class CarThreading(threading.Thread):
 
 if __name__ == '__main__':
     init()
-    CarThreading('192.168.1.218', 8081).start()
+    CarThreading('192.168.1.207', 8081).start()
